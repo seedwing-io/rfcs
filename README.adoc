@@ -1,1 +1,3 @@
-# Does asciidoc render?
+# RFCs
+
+This repository should contain Asciidoc (`.adoc`) files describing RFCs for the Seedwing project.
