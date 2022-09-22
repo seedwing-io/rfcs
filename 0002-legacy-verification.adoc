@@ -1,0 +1,75 @@
+# Legacy Verification
+
+## Summary
+
+A ton of artifacts have been built.
+Some could even be many years old.
+Can we verify them?
+Can we attest anything about them?
+
+## Motivation
+
+The software supply chain is not a greenfields effort.
+Anything built today will inevitably rely on something previously built in the days prior.
+We need to be able to consider how to possibly verify, to some level or another, extant legacy artifacts.
+
+## Analysis
+
+### Source distributed
+
+For ecosystems whose artifacts are source distributions, there exists at least two methods of verification.
+
+1. Verifying the integrity of the source package, _as distributed_, without concern of provenance to any underlying source-control system.
+2. Determining the actual provenance of of the source-distributed package to the source-control system with development history.
+
+The first is "easy" to perform, for some value of "easy".
+The package may be viewed as a completely standalone package of code to be analyzed at a point-in-time.
+A skilled human may inspect and review the underlying source, cross-referencing any candidate CVEs or patches, and decide if a legacy artifact is "okayish".
+
+The second is slightly less easy.
+A human or automated system may attempt to correlate a versioned package, as distributed, to some underlying revision-control system, discovering (through manual or mechanical means) which commit, in which repository, exactly matches the artifact as distributed.
+
+This may not always be "simple", as many projects have failed to tag the revision-control system, have applied tags poorly, or the RCS may be completely unfindable.
+
+### Binary distributed
+
+Artifacts that are distributed as binary items is significantly more difficult to validate.
+
+First, just as with the source-distributed artifacts above, an attempt must be made to discover the underlying source.
+If potential source commits have been located, reproducing the binary may or may not be possible for a variety of reasons:
+
+1. Build environment may be complex or undocumented.
+2. Build environment may rely on other unverified components.
+3. As above, tags or commits may have been poor applied, and the assumed source of origin may be incorrect.
+4. Binary compilation tools may not reliably produce reproducible builds.
+
+Assuming all of the above is avoided, replicating the build and comparing the known build to the extant artifact should, in theory, then be straightforward.
+
+If, as with Java, there can be different binaries produced depending on the version, platform or vendor of toolchain used to build, or even the time-of-day (for artifacts which in any way include a build timestamp), simplistic comparison becomes significantly harder.
+
+## Comparison
+
+[cols="1,1,1"]
+|===
+|Ecosystem
+|Binary or Source?
+|Notes
+
+|Java
+|Binary
+|`.src` jars are available, but possibly
+
+|Rust
+|Source
+|
+
+|Ruby
+|Source
+|
+
+|Go
+|Source?
+|
+|===
+
+
