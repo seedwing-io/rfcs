@@ -25,3 +25,26 @@ Ignoring the larger problem of verifying an entire build of an entire OS distrib
 The proxy *should not* be considered a repository for long-term storage. Per the _ephemeral build environments_ axiom, the proxy should exist only long enough to apply artifact-consumption policies in real-time while building the end artifact under consideration.
 
 Local caching *may* be used for efficiency purposes, during the course of a simple build, as long as no ambiguities can occur regarding artifacts.
+
+## Examples
+
+### _allow all_
+
+A proxy running with an _allow all_ policy is effectively a transparent pass-through proxy.
+The exception is that awareness of inbound artifact can be recorded, analysed and reported upon.
+
+A proxy running _allow all_ mode would be useful during active development when "getting code to work" is a higher priority than "supply-chain safety".
+
+The resulting reports can assist in helping a developer to select different versions or different dependencies in order to reduce risk exposure prior to release.
+
+### _allow $level_
+
+Depending on the development model used by a given team or organization or the anticipated end-use of the resulting build, it may be useful, to provide _some_ restriction on inbound artifacts.
+
+For instance, while all used dependencies may not be "fully approved", the proxy may at least restrict dependencies to those with no currently known CVEs.
+
+An organization may use this mode while preparing for release builds to occur.
+
+### _allow safe_
+
+The degenerate case of _allow $level_ which is contrary to _allow_all_ is the most strict level, which requires full traceability between the artifact under build and *all* relevant dependencies and their own build process and source origin.
