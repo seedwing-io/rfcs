@@ -1,0 +1,27 @@
+# Consuming Artifacts
+
+## Summary
+
+Analysing a build to determine if it's safe is more work than simply not allowing unverified builds.
+
+## Motivation
+
+Software supply-chain is an intensely large landscape.
+From the consumer-of-artifacts end of the stick, making consumption safe is key.
+It's always easier to have an unbreakable policy than to verify that something followed a potentially unenforceable policy, with regards to consumption.
+
+## Design
+
+Part of supply-chain is ephemeral build environments.
+
+A repository proxy could be instilled with the policy that must be followed.
+By using SSC data (via Sigstore, In-Toto, elsewhere), the proxy could allow or deny access to artifacts.
+Additionally, reports or actionable insights could be produced on a per-build basis in order to assess and limit risk exposure.
+
+A given proxy *must* support multiple languages and ecosystems _simultaneously_.
+
+Ignoring the larger problem of verifying an entire build of an entire OS distribution, even from an application-developer perspective, multiple languages and upstream repositories could be involved for any given build.
+
+The proxy *should not* be considered a repository for long-term storage. Per the _ephemeral build environments_ axiom, the proxy should exist only long enough to apply artifact-consumption policies in real-time while building the end artifact under consideration.
+
+Local caching *may* be used for efficiency purposes, during the course of a simple build, as long as no ambiguities can occur regarding artifacts.
