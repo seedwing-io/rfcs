@@ -1,0 +1,21 @@
+# Outboard
+
+## Summary
+
+Where possible, software supply-chain (SSC) data should be possible to associate, outboard, to artifact(s) under discussion.
+
+## Motivation
+
+There exists a lot of artifacts, previously built, in the wild.
+The time has passed for inbuing these artifacts with additional SSC data, metadata or manifests.
+
+There also exists a significant number of artifact-producing communities, which may or may not ever fully adopt SSC technologies.
+If they do adopt SSC technologies, specifications or formats, they may adopt *different* variants.
+
+Organizations such as Red Hat thrive by providing _assurances_ to their customers regarding the artifacts they provide, support, or otherwise sanction.
+Other organizations providing the same services may or may not agree on the validity/assessment of given artifacts.
+Other organizations may make claims about artifacts they originate, which Red Hat (or still yet others) disagree with or otherwise do not initially trust.
+
+By providing, in *all cases* the ability to associate SSC data detached from the artifacts being asserted, multiple organizations can all make assertions and attestations they are willing to stand behind with their own reputation.
+With outboard data, there is no distinct advantage to being the originator or the first attestor of a given artifact.
+Consumers can decide _which_ attestor's reputation and assurances matter to them.
