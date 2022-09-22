@@ -49,26 +49,41 @@ If, as with Java, there can be different binaries produced depending on the vers
 
 ## Comparison
 
-[cols="1,1,1"]
+[cols="1,1,3,3"]
 |===
 |Ecosystem
 |Binary or Source?
+|SSC Adoption
 |Notes
 
-|Java
+|*Java*
 |Binary
-|`.src` jars are available, but possibly
+|Jason van Zyl is attempting to add SSC to Maven
+|`.src` jars are available, but possibly askew from the matching binary.
 
-|Rust
+|*Rust*
 |Source
 |
-
-|Ruby
-|Source
 |
 
-|Go
+|*Ruby*
+|Source
+|
+|
+
+|*Javascript*
+|Source
+|
+|
+
+|*Python*
+|Source
+|
+|
+
+|*Go*
 |Source?
+|
 |
 |===
 
