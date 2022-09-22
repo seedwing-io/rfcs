@@ -1,3 +1,5 @@
 # RFCs
 
 This repository should contain Asciidoc (`.adoc`) files describing RFCs for the Seedwing project.
+
+Terminology generally either made up, or taken from link://https://sigstore.dev/[Sigstore] or link:https://in-toto.io/[In-Toto].
