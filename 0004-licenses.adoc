@@ -1,0 +1,24 @@
+# Licenses
+
+## Summary
+
+The license under which a given artifact is provided is not always immediately obvious, especially to policy-enforcing entities.
+
+By using signatures from a constellation of attestors, licensing can be made actionable.
+
+## Motivation
+
+By using these signatures with OPA policies, license compatibility can be semantically defined.
+
+## Details
+
+Some organizations, by definition, apply various licenses to all artifacts available through them.
+For instance, everything from the Apache Software Foundation is licensed under some variant of the Apache License.
+The Apache License has two graphs of consumption:
+
+1. The licenses allowed by be consume _by_ an AL project.
+2. The licenses allowed to consume the AL project.
+
+OPA policies can be defined to describe the asymetry in license compatibility.
+Attestors can manually or mechanically verify and attest to license applications to artifacts.
+
