@@ -1,0 +1,14 @@
+# Decentralized & Distributed
+
+Software Supply-Chain Security is not solvable in a single trusted ball of mud.
+Supporting fully-secure SSCS should *not* require a single trusted mechanism to ensure end-to-end trust.
+
+## Summary
+
+Software is contructed and used in a multitude of ways.
+It is pert near impossible for any single product or solution to provide trusted mechanism for all builders and consumers of software.
+Just as with physical supply-chain, every organization (and sub-organization within) may have its own requirements, capabilities, processes and methods.
+Likewise, these organizations may or may not cooperate to align each output with the next expected input.
+SSCS *must* support a multitude of disjoint operations from a multitude of disjoint participants while still delivering trustable content.
+
+Just as software is encouraged to be loosely-coupled, with separation-of-concerns composed into larger functional pieces, all of the validation of the software-supply-chain should also compose into a trust level.
