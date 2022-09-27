@@ -12,3 +12,6 @@ Likewise, these organizations may or may not cooperate to align each output with
 SSCS *must* support a multitude of disjoint operations from a multitude of disjoint participants while still delivering trustable content.
 
 Just as software is encouraged to be loosely-coupled, with separation-of-concerns composed into larger functional pieces, all of the validation of the software-supply-chain should also compose into a trust level.
+
+Ultimately, each consumer, at each stage of a build process, *must* decide for themselves if the inputs are acceptable.
+Additionally, each producer, at each stage of a build process, *should* denote any assertions of the primary product(s) produced in that stage, along with providing any upstream attestations to downstream consumers.
