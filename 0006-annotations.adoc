@@ -1,0 +1,198 @@
+= Annotations providing explanations
+
+In order to provide user-friendly reasoning about "why" a validation did not succeed, it is necessary to allow
+authors of patterns to provide additional information, explaining what a pattern validates.
+
+Additionally, this RFC defines a common (reusable) extension mechanism, to provide addition information to types
+(aka annotations).
+
+Bonus points, if this RFC can also define a way to provide "suggestions" (or warnings), which might still let
+a pattern validation succeed, but return additional information that might be useful to the user.
+
+== Motivation
+
+Right now, it is possible to author pretty powerful and complex patterns. However, the outcome of those is either
+a boolean (ok, not ok) or a complex three of reasoning. Neither of them is suitable for a user to understand "why" a
+validation failed, and what needs to be done in order to remedy it.
+
+== Design
+
+=== Annotation syntax
+
+In order to add additional metadata, like the explanation, to the patterns, some kind of "annotation" is proposed. It
+is proposed to use https://doc.rust-lang.org/reference/attributes.html[Rust like attributes], which are actually based
+on C# attributes.
+
+NOTE: "Rust like" doesn't mean that they support the full feature set of Rust annotations, or C# annotations. Ideally,
+they are a subset of Rust annotations.
+
+=== Functions
+
+Built-in functions should be able to contribute the same information, just using built in code. They might be
+able to also craft dynamic messages, based on their input. (e.g. `Dependency 'foo bar' is vulnerable to 'SOME ID'`).
+
+=== Severities
+
+The following severities are defined (in the order of importance, highest first):
+
+error:: Evaluation is failed.
+warning:: Evaluation is succeeded. However, there is a condition the user should be aware of.
+advice:: Evaluation is succeeded. Additionally, the system has some information the user might benefit from. This can be omitted.
+info:: Explanation in the case of a successful validation. This can be omitted.
+debug:: Additional debug information. This should be omitted by default.
+
+=== Definition
+
+Annotations can be placed:
+
+* On the definition of a pattern
+* On the definition of a field
+
+NOTE: There are more possible locations. Let's start with these and expand later on.
+
+== Examples
+
+=== Plain explanation
+
+Definition:
+
+[source]
+----
+#[explain("Not a valid dog")]
+pattern dog = {
+    name: string,
+    #[explain("Your dog needs to be trained")]
+    trained: true
+}
+----
+
+Input:
+[source,yaml]
+----
+name: goodboy
+trained: false
+----
+
+Expected output:
+
+[source,yaml]
+----
+name: dog
+explanation:
+  error:
+    - "Not a valid dog"
+rationale:
+  - name: trained
+    explanation:
+      error:
+        - "Your dog needs to be trained"
+----
+
+=== Nesting stuff
+
+[source]
+----
+pattern valid = either || or
+
+#[explain("Is not of type: either")]
+pattern either = {
+  type: "either"
+}
+
+#[explain("Is not of type: or")]
+pattern or = {
+  type: "or"
+}
+----
+
+[source,yaml]
+----
+type: other
+----
+
+[source,yaml]
+----
+name: lang::or
+explanation:
+  error:
+    - "because one of the conditions failed" # currently "" (empty)
+rationale:
+  - name: example::either
+    explanation:
+      error:
+        - "Is not of type: either" # overridden from "because not all fields were satisfied"
+    rationale:
+      - name: type
+        explanation:
+          - error: "" # currently "" (empty)
+  - name: example::or
+    explanation:
+      error:
+        - "Is not of type: or" # overridden from "because not all fields were satisfied"
+    rationale:
+      - name: type
+        explanation:
+          - error: "" # currently "" (empty)
+----
+
+== Non-goals
+
+=== Dynamic messages through annotations
+
+As a first step, the idea is to use static messages in the annotations. Further on, it might be possible to
+come up with some formatting syntax, allowing to dynamically generate (format) as message using "input" values in
+the process.
+
+== Implementation
+
+Some thought on the actual implementation:
+
+* We currently have the `reason` and `satisfied` field. It feels like we just need to replace them with the
+  `explanation` field (which might be a bad name then). By default, we fill it with the value of the `reason` field,
+  but then override it with the "explanation".
+
+== Alternatives
+
+=== Only one per level
+
+The proposal is to allow a list of explanations per severity. An alternative would be to just use a single one.
+
+However, it might actually be that some checks have multiple explanations for a failed check. Most likely, as part of
+built-in functions.
+
+In cases like this, the alternative would be to concat strings. However, that will drop the information that the
+original cause was actually due to multiple (different) reasons.
+
+=== Severities/Priorities
+
+The idea is to use a limited set of severities: `error`, `warning`, `advice`, `info`, `debug`. And by default, any occurrence
+of `error` failing the validation. Making it possible to also fail with any `error` or `warning` (or others). But
+defining an order (as listed above).
+
+An alternative could be, to just use a numeric value instead. That might give more flexibility, but also create
+more confusion (uncertainty) on what the meaning of a value is. And as patterns could come from different authors,
+all those authors would need to align on their values.
+
+Therefore, it seems better to use a pre-defined list of severities, which already have a meaning assigned.
+
+=== Dropping `reason` and `satisfied`
+
+Currently, we have two fields which indicate the outcome: `reason` and `satisfied`. We might drop them.
+
+The implication would be, that the `explanation` field (which might be a bad name) is the only carrier of the
+information if something was satisfied or not.
+
+Dropping the `reason` field seems to make sense, as the new structure provides more information, and having the `reason`
+field in addition feels redundant.
+
+The `satisfied` field can actually also be redundant. It is an aggregation of the `explanation` entries, which the
+application can also do for you. So serializing the aggregated information may be convenient, but unnecessary.
+
+Assuming the only way to carry the `satisfied` information is via the `explanation` structure, this would ensure that
+every step also provides a reason for the decision, instead of currently just having `""` in many cases. This forces
+us to provide meaningful output for the user.
+
+On the other side, this can become rather verbose, and not always required. So providing a pre-aggregate serialization
+might be helpful. Still, that could be derived automatically from the generated outcome. And instead of `satisfied`,
+this should carry the most important severity. `info` being the default if none or only debug explanations had been
+present.
