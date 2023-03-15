@@ -50,6 +50,89 @@ Annotations can be placed:
 
 NOTE: There are more possible locations. Let's start with these and expand later on.
 
+Patterns are evaluated depth-first. The outcome of leave nodes can be zero or more "reasons", each having a severity
+attached. The outcome severity is the highest of them.
+
+For aggregating branch elements, the element fails with the highest severity of its children.
+
+.Example of a List with a failed child
+[example]
+====
+
+Having a list with two annotations:
+
+* error: "List failed"
+* advice: "Might be better"
+
+Having a list with the following outcomes:
+
+[source,yaml]
+----
+- errors: ["Type does not match"]
+- warnings: ["Looks fishy"]
+- advice: ["Beware"]
+- {} # <1>
+----
+<1> Meaning "successful"
+
+The list element would resolve in:
+
+[source,yaml]
+----
+- errors: ["List failed"]
+  reasons:
+    - errors: ["Type does not match"]
+    - warnings: ["Looks fishy"]
+    - advice: ["Beware"]
+    - {}
+----
+====
+
+.Example of a list with a warning element
+[example]
+====
+
+Assume the example from before. If the list had:
+
+[source,yaml]
+----
+- warnings: ["Looks fishy"]
+- {}
+----
+
+The outcome would instead be:
+
+[source,yaml]
+----
+- warnings: [ "Not all the list elements validated successfully" ] # <1>
+  reasons:
+    - warnings: ["Looks fishy"]
+    - {}
+----
+<1> Because this is the standard message for lists
+
+====
+
+.Similar example with only advices
+[example]
+====
+
+[source,yaml]
+----
+- advice: ["Beware"]
+- {}
+----
+
+[source,yaml]
+----
+- advice: [ "Might be better" ]
+  reasons:
+    - advice: ["Beware"]
+    - {}
+----
+
+====
+
 == Examples
 
 === Plain explanation
@@ -77,15 +160,20 @@ Expected output:
 
 [source,yaml]
 ----
-name: dog
+name: example::dog
 explanation:
   error:
-    - "Not a valid dog"
+    - "Not a valid dog" # overridden from "because not all fields were satisfied"
 rationale:
+  - name: name
+    rationale:
+      - name: string
   - name: trained
     explanation:
       error:
-        - "Your dog needs to be trained"
+        - "Your dog needs to be trained
+    rationale:
+      - {} # missing name, as it's inline
 ----
 
 === Nesting stuff
@@ -135,6 +223,56 @@ rationale:
           - error: "" # currently "" (empty)
 ----
 
+=== Adding a warning
+
+Definition:
+
+[source]
+----
+#[explain("Not a valid dog")]
+pattern dog = {
+    name: string,
+    #[explain("Make a statement on the training of your dog")]
+    trained: is_trained <1>
+}
+
+#[info("Well done")]
+#[warning("Oh boy")]
+pattern is_trained = true
+----
+<1> As we can only annotate pattern definitions or fields, we need to explicitly declare this as a pattern
+
+Input:
+
+[source,yaml]
+----
+name: goodboy
+trained: false
+----
+
+Expected output:
+
+[source,yaml]
+----
+name: example::dog
+explanation:
+  error:
+    - "Not a valid dog" # overridden from "because not all fields were satisfied"
+rationale:
+  - name: name
+    rationale:
+      - name: string
+  - name: trained
+    explanation:
+      error:
+        - "Your dog needs to be trained"
+    rationale:
+      - name: lang::or
+        rationale:
+          - name: example::is_trained
+          - name: example::is_not_trained
+----
+
 == Non-goals
 
 === Dynamic messages through annotations
@@ -150,6 +288,12 @@ Some thought on the actual implementation:
 * We currently have the `reason` and `satisfied` field. It feels like we just need to replace them with the
   `explanation` field (which might be a bad name then). By default, we fill it with the value of the `reason` field,
   but then override it with the "explanation".
+
+=== Corner case: Multiple annotations
+
+Assuming there are multiple annotations on an element present, even with different severities.
+
+In this case, they will simply all be applied.
 
 == Alternatives
 
