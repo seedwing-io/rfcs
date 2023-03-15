@@ -15,6 +15,31 @@ Right now, it is possible to author pretty powerful and complex patterns. Howeve
 a boolean (ok, not ok) or a complex three of reasoning. Neither of them is suitable for a user to understand "why" a
 validation failed, and what needs to be done in order to remedy it.
 
+== Summary of changes
+
+* Drop `satisfied` and `reason`
+* Define severities: see <<Severities>>
+* Add `explanation` (might find a better name) with a (result) structure of:
++
+[source,yaml]
+----
+name: <name of field or pattern>
+input: {}
+output: {}
+rationale:
+  - {} # nested results
+explanation:
+  - "<severity>": [] <1>
+----
+<1> For each severity, as list of explanations
+* The field `satisfied` can be substituted with an expression like `!result.explanation[Severity::Error].is_empty()`
+* The field `reason` can be substituted with an expression like `result.explanation[result.explanations.values().sorted().first().unwrap_or(Severity::Info)].first().unwrap_or_default()`
+* Each element has a severity level, which is equal the highest severity of its entries
+* For elements having nested elements
+  ** It is possible to use the highest severity as outcome, and proceed accordingly
+  ** If they are expected to fail or pass, a severity level of `Error` should be considered "failed", everything else "passed"
+  ** We might need some way to specifically target severity levels (like `list::only-warnings()`?)
+
 == Design
 
 === Annotation syntax
@@ -68,8 +93,8 @@ Having a list with the following outcomes:
 
 [source,yaml]
 ----
-- errors: ["Type does not match"]
-- warnings: ["Looks fishy"]
+- error: ["Type does not match"]
+- warning: ["Looks fishy"]
 - advice: ["Beware"]
 - {} # <1>
 ----
@@ -79,12 +104,16 @@ The list element would resolve in:
 
 [source,yaml]
 ----
-- errors: ["List failed"]
-  reasons:
-    - errors: ["Type does not match"]
-    - warnings: ["Looks fishy"]
-    - advice: ["Beware"]
-    - {}
+- explanation:
+    errors: ["List failed"]
+  rationale:
+    - explanation:
+        error: ["Type does not match"]
+    - explanation:
+        warning: ["Looks fishy"]
+    - explanation:
+        advice: ["Beware"]
+    - explanation: {}
 ----
 ====
 
@@ -96,18 +125,21 @@ Assume the example from before. If the list had:
 
 [source,yaml]
 ----
-- warnings: ["Looks fishy"]
-- {}
+- explanation:
+    warning: ["Looks fishy"]
+- explanation: {}
 ----
 
 The outcome would instead be:
 
 [source,yaml]
 ----
-- warnings: [ "Not all the list elements validated successfully" ] # <1>
-  reasons:
-    - warnings: ["Looks fishy"]
-    - {}
+- explanation:
+    warnings: [ "Not all the list elements validated successfully" ] # <1>
+  rationale:
+    - explanation:
+        warning: ["Looks fishy"]
+    - explanation: {}
 ----
 <1> Because this is the standard message for lists
 
@@ -119,16 +151,19 @@ The outcome would instead be:
 
 [source,yaml]
 ----
-- advice: ["Beware"]
-- {}
+- explanation:
+    advice: ["Beware"]
+- explanation: {}
 ----
 
 [source,yaml]
 ----
-- advice: [ "Might be better" ]
-  reasons:
-    - advice: ["Beware"]
-    - {}
+- explanation:
+    advice: [ "Might be better" ]
+  rationale:
+    - explanation:
+        advice: ["Beware"]
+    - explanation: {}
 ----
 
 ====
