@@ -1,0 +1,76 @@
+# Semantics of a map function
+
+## Summary
+
+Many times, the input to patterns are lists.
+
+In those cases, it is very useful to apply some function for every element in the list, also called a `map` function.
+
+Today we have the `lang::map<PATTERN>` function, which does the following:
+
+* If the input is a list, apply PATTERN to every element
+* If the input is any other value, apply PATTERN to the value and output a _list_ with the result
+
+However, there is currently a difference in how the lang::map behaves compared to your typical map operation in other languages:
+
+*If the pattern does not match any element in the list, return Output::None. This means that elements that did match the pattern, does not get their output returned.*
+
+## Motivation
+
+Some uses of the lang::map pattern need to have the transformed output returned. The motivation is to change the semantics of lang::map so that it can be more useful in those cases.
+
+Example of current behavior when applying a function that multiplies each element in the list by 2:
+
+Input: `[1, 2, "3"]`
+Pattern: `lang::map<multiply<2>>`
+Output: `Output::None`
+
+Instead, it should be possible to learn the outcomes for each individual element:
+
+Input: `[1, 2, "3"]`
+Pattern: `lang::map<multiply<2>>`
+Output: `[2, 4, ?]`
+
+However, the question is what to return in the case the pattern does not accept the input.
+
+Ideally, the response format should:
+
+* State the output of the evaluation
+* Contain output values of any transforms
+* Be kept small to support as large batches possible
+
+The proposed approach is to return some object that describes the output along with a value, and any optional rationale. For errors such as RuntimeError, the map function will still abort as today.
+
+Input: `[1, 2, "3"]`
+Pattern: `lang::map<multiply<2>>`
+Output: 
+```
+[
+  {
+     "value": 2
+  },
+  {
+     "value": 4
+  },
+  {
+    "reason": "Input is not an integer"
+  }
+]
+```
+
+One problem is that at present one cannot further map the above to only the output values in Dogma.
+
+For those cases, introducing a `lang::map-or-null` to operate the same value as `lang::map` execpt that it provides `null` values for entries where there was not match:
+
+Input: `[1, 2, "3"]`
+Pattern: `lang::map-or-null<multiply<2>>`
+Output: 
+```
+[
+  2,
+  4,
+  null
+]
+```
+
+This allows using the transformed output value without client side 'workarounds'.
