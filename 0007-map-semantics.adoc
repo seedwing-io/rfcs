@@ -39,7 +39,7 @@ Ideally, the response format should:
 * Contain output values of any transforms
 * Be kept small to support as large batches possible
 
-The proposed approach is to return some object that describes the output along with a value, and any optional rationale.
+The proposed approach is to return some object that describes the output along with a value, and any optional rationale. For errors such as RuntimeError, the map function will still abort as today.
 
 Input: `[1, 2, "3"]`
 Pattern: `lang::map<multiply<2>>`
@@ -47,27 +47,23 @@ Output:
 ```
 [
   {
-    "output": "transform",
-    "value": 2
+     "value": 2
   },
   {
-    "output": "transform",
-    "value": 4
+     "value": 4
   },
   {
-    "output": "none"
-    "value": null // Optional: Set to allow for filtering and further maping
-    "rationale": null // Optional: Set if available
+    "reason": "Input is not an integer"
   }
 ]
 ```
 
 One problem is that at present one cannot further map the above to only the output values in Dogma.
 
-For those cases, introducing a `lang::map-value` to operate the same value as `lang::map` execpt that it provides `null` values for entries where there was not match:
+For those cases, introducing a `lang::map-or-null` to operate the same value as `lang::map` execpt that it provides `null` values for entries where there was not match:
 
 Input: `[1, 2, "3"]`
-Pattern: `lang::map-value<multiply<2>>`
+Pattern: `lang::map-or-null<multiply<2>>`
 Output: 
 ```
 [
@@ -76,3 +72,5 @@ Output:
   null
 ]
 ```
+
+This allows using the transformed output value without client side 'workarounds'.
